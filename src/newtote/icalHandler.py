@@ -1,4 +1,6 @@
 import vobject
+import datetime
+import nuclasses
 defaultFolderStructure = [
                             "./data",
                             "./data/default",
@@ -10,9 +12,35 @@ defaultFileStructure = [
                         "./config/default/defaultConfig.conf"]
 
 
-class Session:
-    def __init__(self, dataFile=defaultDataFile, configFile=0):
 
+### UTC CLASS. DISABLE IF NECESSARY
+import datetime
+
+ZERO = datetime.timedelta(0)
+HOUR = datetime.timedelta(hours=1)
+
+# A UTC class.
+
+class UTC(datetime.tzinfo):
+    """UTC"""
+
+    def utcoffset(self, dt):
+        return ZERO
+
+    def tzname(self, dt):
+        return "UTC"
+
+    def dst(self, dt):
+        return ZERO
+
+utc = UTC()
+#####
+
+
+
+class Session:
+    def __init__(self, dataFiles=defaultFileStructure, configFile=0):
+	pass
 
 
 def exportEventsToiCal(list_of_events):
@@ -27,7 +55,7 @@ def createToteDirs(path="~/.tote"):
     ### (path is most likely "~/.tote")
     import os
     fullpath = os.path.expanduser(path)
-    if os.path.isdir(fullpath)  #This is if there is already a tote folder
+    if os.path.isdir(fullpath):  #This is if there is already a tote folder
         os.chdir(fullpath)
     else:                        #Otherwise we need to create one
         splitPath = fullpath.split("/")
@@ -41,14 +69,20 @@ def createToteDirs(path="~/.tote"):
     for file in fileStructure:
         temp = open(file, 'w')
         temp.close()
+
         
     
                 
-        
+def eventToiCal(ical, event):
+	ical.add('vevent')
+	ical.vevent.add('summary').value = event.name
+	icalstart = ical.vevent.add('dtstart')
+	print icalstart
+	ical.prettyPrint()
     
 
 def removeToteDirs(path):
-    
+    pass
 
 
 cal = vobject.newFromBehavior('vcalendar')
@@ -62,11 +96,16 @@ ical.add('vevent')
 ical.vevent.add('summary').value = "Hey there folks"
 ical.prettyPrint()
 
-icalStart = ical.vevent.add('dtstart')
+print utc
 
+icalStart = ical.vevent.add('dtstart')
+icalStart.value = datetime.datetime(2006, 2, 16, 0)
+print "amhere"
+ical.prettyPrint()
 
 card = vobject.vCard()
 print card.behavior
 
-icalStart.value = datetime(2006, 2, 16, tzinfo = utc)
-ical.prettyPrint()
+
+eventToiCal(ical, nuclasses.events[2])
+
