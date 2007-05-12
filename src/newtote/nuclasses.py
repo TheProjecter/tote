@@ -5,6 +5,30 @@ events = []
 tomorrows = ["none"]
 
 
+### UTC CLASS. DISABLE IF NECESSARY
+import datetime
+
+ZERO = datetime.timedelta(0)
+HOUR = datetime.timedelta(hours=1)
+
+# A UTC class.
+
+class UTC(datetime.tzinfo):
+    """UTC"""
+
+    def utcoffset(self, dt):
+        return ZERO
+
+    def tzname(self, dt):
+        return "UTC"
+
+    def dst(self, dt):
+        return ZERO
+
+utc = UTC()
+#####
+
+
 def convertToSeconds(m=0, h=0, d=0, w=0, y=0):
     return m*60 + h*3600 + d*3600*24 + w*7*24*3600 + y*365*24*3600
 
@@ -187,8 +211,6 @@ class day:
         else:
             return False
 #Start of normal methods:
-
-    def 
 
 
 def taskCreator():
