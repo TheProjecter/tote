@@ -18,10 +18,11 @@ def dateFromTime(localTime):
 'Sat Apr 21 15:15:52 2007'
 
 def shortTime(theTime):
-	longTime = time.asctime(theTime)
-	splitTime = longTime.split(" ")
-	shortenedTime = splitTime[1] + " " + splitTime[2] + ", " + splitTime[3].split(":")[0] + splitTime[3].split(":")[1]
-	return shortenedTime
+    longTime = time.asctime(theTime)
+    splitTime = longTime.split(" ")
+    print splitTime
+    shortenedTime = splitTime[1] + " " + splitTime[2] + ", " + splitTime[3].split(":")[0] + splitTime[3].split(":")[1]
+    return shortenedTime
 
 def splitDate(date):  #turns mm.dd.yyyy to [mm, dd, yyyy]
     tempDate = date.split(".")
@@ -186,6 +187,8 @@ class day:
         else:
             return False
 #Start of normal methods:
+
+    def 
 
 
 def taskCreator():
