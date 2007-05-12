@@ -1,4 +1,0 @@
-
-FreeTime = 
-
-upcomingFreeBlocks
