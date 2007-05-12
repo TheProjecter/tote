@@ -4,10 +4,10 @@ tasks = []
 events = []
 tomorrows = ["none"]
 
-
-### UTC CLASS. DISABLE IF NECESSARY
 import datetime
 
+### UTC CLASS. DISABLE IF NECESSARY
+#import datetime
 ZERO = datetime.timedelta(0)
 HOUR = datetime.timedelta(hours=1)
 
@@ -37,15 +37,18 @@ def addTime(currentTime, seconds=0):
     return time.localtime(time.mktime(currentTime) + int(seconds)) #Find time in secs, add needed seconds, convert back into 9field tuple
 
 def dateFromTime(localTime):
-    return str(localTime[1]) + "." + str(localTime[2]) + "." + str(localTime[0])
+    hdate = str(self.startTime).split()[0].split("-")
+    return hdate[0] + "." + hdate[1] + "." + hdate[2]
+    #return str(localTime[1]) + "." + str(localTime[2]) + "." + str(localTime[0])
 
 'Sat Apr 21 15:15:52 2007'
 
 def shortTime(theTime):
+    theTime = theTime.timetuple()
     longTime = time.asctime(theTime)
     splitTime = longTime.split(" ")
     print splitTime
-    shortenedTime = splitTime[1] + " " + splitTime[2] + ", " + splitTime[3].split(":")[0] + splitTime[3].split(":")[1]
+    shortenedTime = splitTime[1] + " " + splitTime[2] + ", " + splitTime[3].split(":")[0] + ":" + splitTime[3].split(":")[1]
     return shortenedTime
 
 def splitDate(date):  #turns mm.dd.yyyy to [mm, dd, yyyy]
@@ -113,10 +116,10 @@ def findItemsForDate(date):
     tempItems = get_upcoming_items(-1)
     foundItems = []
     for each in tempItems:
-        if each.date != date:
+        if each.getdate != date:
             pass
         else:
-            print "Leaving: ", each.date
+            print "Leaving: ", each.getdate
             foundItems.append(each)
     return foundItems
     
@@ -152,7 +155,7 @@ def get_upcoming_items(number_of_items):
     
     
     
-    
+#Remove:    
 def updateDate(date=-1):
     import time
     if date == -1:
@@ -161,56 +164,31 @@ def updateDate(date=-1):
           date.append(each)
 #    if tomorrows[0]. == 
     
-
+#/end remove
 
 class day:
     #Builtin Methods
-    def __init__(self, date, startOfDay="0600", endOfDay="2000"): #ie "1124"
+    def __init__(self, dateTime, startOfDay="0600", endOfDay="2000"): #ie "1124"
         self.startOfDay = startOfDay
         self.endOfDay = endOfDay
-        self.date = date
+        self.dateTime = dateTime
         days.append(self)
         
-    def __lt__(self, secondDay):
-        if self.date == secondDay.date:
-            return False
-        dateSplit1 = splitDate(self.date)
-        dateSplit2 = splitDate(secondDay.date)
-        if dateSplit1[2] == dateSplit2[2]:
-            if dateSplit1[0] == dateSplit2[0]:
-                if dateSplit1[1] < dateSplit2[1]:
-                    return True
-                else:
-                    return False
-            elif dateSplit1[0] < dateSplit2[0]:
-                return True
-            else:
-                return False
-        elif dateSplit1[2] < dateSplit2[2]:
+    def getdate(self):
+        hdate = str(self.dateTime).split()[0].split("-")
+        return hdate[0] + "." + hdate[1] + "." + hdate[2]
+        
+    def __lt__(self, secondThing):
+        if self.dateTime < secondThing.dateTime:
             return True
         else:
             return False
 
-    def __gt__(self, secondDay):
-        if self.date == secondDay:
-            return False
-            dateSplit1 = splitDate(self.date)
-        dateSplit2 = splitDate(secondDay.date)
-        if dateSplit1[2] == dateSplit2[2]:
-            if dateSplit1[0] == dateSplit2[0]:
-                if dateSplit1[1] > dateSplit2[1]:
-                    return True
-                else:
-                    return False
-            elif dateSplit1[0] > dateSplit2[0]:
-                return True
-            else:
-                return False
-        elif dateSplit1[2] > dateSplit2[2]:
+    def __gt__(self, secondThing):
+        if self.dateTime > seconThing.dateTime:
             return True
         else:
             return False
-#Start of normal methods:
 
 
 def taskCreator():
@@ -224,25 +202,22 @@ class task:
         tasks.append(self)
         self.name = name
         if startTime == -1:
-            startTime = time.localtime()
+            self.startTime = datetime.datetime.now()
         else:
             try:
-                print "Start Date is: ", time.asctime(startTime)
                 self.startTime = startTime
             except TypeError:
-                startTime = time.localtime()
+                self.startTime = datetime.datetime.now()
+        print self.startTime
         if dueTime == -1:
-            dueTime = addTime(time.localtime(), 86400) #One day from now
+            self.dueTime = self.startTime.replace(day=self.startTime.day+1) #One day from now
         else:
             
             ############## working on date here. Start of day? End of day? ###################
             try:
-                print "Due Date is: ", time.asctime(dueTime)
                 self.dueTime = dueTime
             except TypeError:
-                dueTime = time.localtime()
-        self.dueTime = dueTime
-        self.date = dateFromTime(dueTime)
+                self.dueTime = tstartTime.replace(day=startTime.day+1, hour=7)
         self.relatedTasks = []
         self.resources = []
         self.description = description
@@ -257,47 +232,23 @@ class task:
         self.parentEvents = []
         for each in parentEvents:
             self.parentEvents.append(each)
+        self.dateTime = self.startTime
     
+    def getdate(self):
+        hdate = str(self.startTime).split()[0].split("-")
+        return hdate[0] + "." + hdate[1] + "." + hdate[2]
     
-    def __lt__(self, secondDay):
-        if self.date == secondDay.date:
-            return False
-        dateSplit1 = splitDate(self.date)
-        dateSplit2 = splitDate(secondDay.date)
-        if dateSplit1[2] == dateSplit2[2]:
-            if dateSplit1[0] == dateSplit2[0]:
-                if dateSplit1[1] < dateSplit2[1]:
-                    return True
-                else:
-                    return False
-            elif dateSplit1[0] < dateSplit2[0]:
-                return True
-            else:
-                return False
-        elif dateSplit1[2] < dateSplit2[2]:
+    def __lt__(self, secondThing):
+        if self.startTime < secondThing.startTime:
             return True
         else:
             return False
 
-    def __gt__(self, secondDay):
-        if self.date == secondDay:
-            return False
-            dateSplit1 = splitDate(self.date)
-        dateSplit2 = splitDate(secondDay.date)
-        if dateSplit1[2] == dateSplit2[2]:
-            if dateSplit1[0] == dateSplit2[0]:
-                if dateSplit1[1] > dateSplit2[1]:
-                    return True
-                else:
-                    return False
-            elif dateSplit1[0] > dateSplit2[0]:
-                return True
-            else:
-                return False
-        elif dateSplit1[2] > dateSplit2[2]:
+    def __gt__(self, secondThing):
+        if self.startTime > secondThing.startTime:
             return True
         else:
-            return False        
+            return False
         
     def removeRelatedTask(self, task):
         try:
@@ -342,66 +293,38 @@ class event:
         self.name = name
         self.description = description
         if startTime == -1:
-            startTime = time.localtime()
+            startTime = datetime.datetime.now()
         else:
             try:
-                print "Start Time is: ", time.asctime(startTime)
                 self.startTime = startTime
             except TypeError:
-                startTime = time.localtime()
+                startTime = dateTime.datetime.now()
         if endTime == -1:
-            endTime = addTime(time.localtime(), 86400) #One day from now
+            endTime = startTime.replace(day=startTime.day+1) #One day from now
         else:
             try:
-                print "End Time is: ", time.asctime(endTime)
-                self.startTime = endTime
+                self.endTime = endTime
             except TypeError:
-                endTime = addTime(time.localtime(), 86400) #One day from now
-        self.startDate = dateFromTime(startTime)
-        self.date = self.startDate
-        self.endDate = dateFromTime(endTime)
+                endTime = startTime.replace(day=startTime.day+1) #One day from now
+        self.dateTime = self.startTime
         self.isBlock = isBlock
+        
+    def getdate(self):
+        hdate = str(self.startTime).split()[0].split("-")
+        return hdate[0] + "." + hdate[1] + "." + hdate[2]
      
-    def __lt__(self, secondDay):
-        if self.date == secondDay.date:
-            return False
-        dateSplit1 = splitDate(self.date)
-        dateSplit2 = splitDate(secondDay.date)
-        if dateSplit1[2] == dateSplit2[2]:
-            if dateSplit1[0] == dateSplit2[0]:
-                if dateSplit1[1] < dateSplit2[1]:
-                    return True
-                else:
-                    return False
-            elif dateSplit1[0] < dateSplit2[0]:
-                return True
-            else:
-                return False
-        elif dateSplit1[2] < dateSplit2[2]:
+    def __lt__(self, secondThing):
+        if self.dateTime < secondThing.dateTime:
             return True
         else:
             return False
 
-    def __gt__(self, secondDay):
-        if self.date == secondDay:
-            return False
-            dateSplit1 = splitDate(self.date)
-        dateSplit2 = splitDate(secondDay.date)
-        if dateSplit1[2] == dateSplit2[2]:
-            if dateSplit1[0] == dateSplit2[0]:
-                if dateSplit1[1] > dateSplit2[1]:
-                    return True
-                else:
-                    return False
-            elif dateSplit1[0] > dateSplit2[0]:
-                return True
-            else:
-                return False
-        elif dateSplit1[2] > dateSplit2[2]:
+    def __gt__(self, secondThing):
+        if self.dateTime > secondThing.datetime:
             return True
         else:
             return False
-	 
+        
 
 def timeBetweenEvents(event1, event2):
     if event1.startTime < event2.startTime:
@@ -427,16 +350,16 @@ dayroy = day("12.01.1947")
 daymarleen = day("04.15.1957")
 
 #Some sample Tasks
-task1 = task("First", description="A task1", startTime=addTime(time.localtime(), convertToSeconds(h=360)))
-task2 = task("Second", description="A task2", startTime=addTime(time.localtime(), convertToSeconds(h=24)))
-task3 = task("Third", description="A task3", startTime=addTime(time.localtime(), convertToSeconds(h=4)))
-task4 = task("Fourth", description="A task4", startTime=addTime(time.localtime(), convertToSeconds(h=80)))
+task1 = task("First", description="A task1", startTime=datetime.datetime.now())
+task2 = task("Second", description="A task2", startTime=datetime.datetime.now())
+task3 = task("Third", description="A task3", startTime=datetime.datetime.now())
+task4 = task("Fourth", description="A task4", startTime=datetime.datetime.now())
 
 #Some Sample Events
-event1 = event("First", "Event1", addTime(time.localtime(), convertToSeconds(h=24)), time.localtime())
-event2 = event("Second", "Event2", addTime(time.localtime(), convertToSeconds(h=48)), time.localtime())
-event3 = event("Third", "Event3", addTime(time.localtime(), convertToSeconds(h=124)),time.localtime())
-event4 = event("Fourth", "Event4", addTime(time.localtime(), convertToSeconds(h=360)), time.localtime())
+event1 = event("First", "Event1", startTime=datetime.datetime.now())
+event2 = event("Second", "Event2", startTime=datetime.datetime.now())
+event3 = event("Third", "Event3", startTime=datetime.datetime.now())
+event4 = event("Fourth", "Event4", startTime=datetime.datetime.now())
 
 def printDays(listOfDays):
 	for day in listOfDays:

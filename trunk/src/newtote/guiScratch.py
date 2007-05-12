@@ -311,7 +311,7 @@ class ToteMainWindow(gtk.Window):
                 COLUMN_BOTH_COMPLETED, False,
                 COLUMN_BOTH_NAME, item.name,
                 COLUMN_BOTH_TYPE, "Task",
-                COLUMN_BOTH_DATE, item.date,
+                COLUMN_BOTH_DATE, item.getdate(),
                 COLUMN_BOTH_DESCRIPTION, item.description)
                 #COLUMN_BOTH_RELATED, "Nothing")
                 
@@ -321,7 +321,7 @@ class ToteMainWindow(gtk.Window):
                 COLUMN_BOTH_COMPLETED, False,
                 COLUMN_BOTH_NAME, item.name,
                 COLUMN_BOTH_TYPE, "Event",
-                COLUMN_BOTH_DATE, item.date,
+                COLUMN_BOTH_DATE, item.getdate(),
                 COLUMN_BOTH_DESCRIPTION, item.description)
                 #COLUMN_BOTH_RELATED, "Nothing")
                 
@@ -607,7 +607,7 @@ class ToteMainWindow(gtk.Window):
             self.statusbar.set_has_resize_grip(not (event.new_window_state & mask))
             
     def updateCalendarEvents(self, widget): #strings
-        theTime = self.calendarDateToTuple(widget)
+        theTime = self.calendarDateToDateTime(widget)
         
         pass
         
@@ -630,15 +630,14 @@ class ToteMainWindow(gtk.Window):
     
     def calendar_day_selected_double_click(self, widget):
         pass
-    
-    def calendarDateToTuple(self, calendar):
+
+    def calendarDateToDateTime(self, calendar):
         year, month, day = calendar.get_date()
-        theTime = time.localtime(time.mktime((year, month+1, day, 0, 0, 0, 0, 0, -1)))
+        theTime = datetime.datetime(year, month, day)
         return theTime
     
     def calendarDateToString(self, calendar):
-        theTime = self.calendarDateToTuple(calendar)
-        print theTime
+        theTime = self.calendarDateToDateTime(calendar)
         theDate = nuclasses.dateFromTime(theTime)
         return theDate
 
