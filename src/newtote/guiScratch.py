@@ -607,7 +607,8 @@ class ToteMainWindow(gtk.Window):
             self.statusbar.set_has_resize_grip(not (event.new_window_state & mask))
             
     def updateCalendarEvents(self, widget): #strings
-        self.calendarDateToTuple(widget)
+        theTime = self.calendarDateToTuple(widget)
+        
         pass
         
     def calendar_day_selected(self, widget):
