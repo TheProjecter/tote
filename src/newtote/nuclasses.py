@@ -37,7 +37,7 @@ def addTime(currentTime, seconds=0):
     return time.localtime(time.mktime(currentTime) + int(seconds)) #Find time in secs, add needed seconds, convert back into 9field tuple
 
 def dateFromTime(localTime):
-    hdate = str(self.startTime).split()[0].split("-")
+    hdate = str(localTime).split()[0].split("-")
     return hdate[0] + "." + hdate[1] + "." + hdate[2]
     #return str(localTime[1]) + "." + str(localTime[2]) + "." + str(localTime[0])
 

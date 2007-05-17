@@ -3,7 +3,9 @@
 import gobject
 import gtk
 import nuclasses
+import icalHandler
 import time
+import datetime
 
 (
   COLOR_RED,
@@ -478,11 +480,11 @@ class ToteMainWindow(gtk.Window):
           ( "Open", gtk.STOCK_OPEN,                    # name, stock id
             "_Open","<control>O",                      # label, accelerator
             "Open a file",                             # tooltip
-            self.activate_action ),
+            self.activate_open ),
           ( "Save", gtk.STOCK_SAVE,                    # name, stock id
             "_Save","<control>S",                      # label, accelerator
             "Save current file",                       # tooltip
-            self.activate_action ),
+            self.activate_save ),
           ( "SaveAs", gtk.STOCK_SAVE,                  # name, stock id
             "Save _As...", None,                       # label, accelerator
             "Save to a file",                          # tooltip
@@ -563,7 +565,21 @@ class ToteMainWindow(gtk.Window):
             'You activated action: "%s" of type "%s"' % (action.get_name(), type(action)))
         # Close dialog on user response
         dialog.connect ("response", lambda d, r: d.destroy())
+        a = icalHandler.tasksToVObject(nuclasses.tasks)
+        (b, c) = icalHandler.itemsFromVObject(a.serialize())
+        icalHandler.addTasksFromCalDict(b)
         dialog.show()
+
+    def activate_open(self, action):
+        tempdict = icalHandler.importiCalFromFile("/home/astromme/icaltest.ics")
+        icalHandler.addTasksFromCalDict(tempdict)
+        self.treeview_both.set_model(self.__create_model_both(nuclasses.tasks, nuclasses.events))
+        self.treeview.set_model(self.__create_model_tasks(nuclasses.tasks))
+        
+    def activate_save(self, action):
+        icalObject = icalHandler.tasksToVObject(nuclasses.tasks)
+        icalHandler.exportiCalToFile(icalObject, "/home/astromme/icaltest.ics",1)
+        
 
     def activate_radio_action(self, action, current):
         active = current.get_active()
@@ -633,7 +649,8 @@ class ToteMainWindow(gtk.Window):
 
     def calendarDateToDateTime(self, calendar):
         year, month, day = calendar.get_date()
-        theTime = datetime.datetime(year, month, day)
+        print year, month, day
+        theTime = datetime.datetime(year, month+1, day)
         return theTime
     
     def calendarDateToString(self, calendar):
