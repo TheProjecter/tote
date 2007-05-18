@@ -54,6 +54,7 @@ ui_info = \
        <separator/>
        <menuitem action='Resource'/>
       </menu>
+      <menuitem action='Remove'/>
       <menuitem action='Open'/>
       <menuitem action='Save'/>
       <menuitem action='SaveAs'/>
@@ -79,6 +80,7 @@ ui_info = \
   </menubar>
   <toolbar  name='ToolBar'>
     <toolitem action='Open'/>
+    <toolitem action='Remove'/>
     <toolitem action='Quit'/>
     <separator/>
     <toolitem action='Logo'/>
@@ -481,6 +483,10 @@ class ToteMainWindow(gtk.Window):
             "_Open","<control>O",                      # label, accelerator
             "Open a file",                             # tooltip
             self.activate_open ),
+          ( "Remove", gtk.STOCK_DELETE,
+            "_Remove","<delete>",
+            "Remove selected item",
+            self.activate_remove ),
           ( "Save", gtk.STOCK_SAVE,                    # name, stock id
             "_Save","<control>S",                      # label, accelerator
             "Save current file",                       # tooltip
@@ -569,6 +575,9 @@ class ToteMainWindow(gtk.Window):
         (b, c) = icalHandler.itemsFromVObject(a.serialize())
         icalHandler.addTasksFromCalDict(b)
         dialog.show()
+
+    def activate_remove(self, action):
+        print "I'm here"
 
     def activate_open(self, action):
         tempdict = icalHandler.importiCalFromFile("/home/astromme/icaltest.ics")

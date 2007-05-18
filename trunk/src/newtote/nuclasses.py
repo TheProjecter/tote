@@ -5,6 +5,8 @@ events = []
 tomorrows = ["none"]
 
 import datetime
+from random import randint
+from socket import gethostname
 
 ### UTC CLASS. DISABLE IF NECESSARY
 #import datetime
@@ -101,6 +103,12 @@ def timeBetweenTimes(time1, time2): # our 9field tuple is time1
     seconds = convertToSeconds(d=days, h=hours, m=minutes)
     return seconds			
 
+def generateUID():
+    uid_date = str(datetime.datetime.now())
+    uid_random = str(randint(10000, 99999))
+    uid_machine = str(gethostname())
+    uid_full = uid_date + "-" + uid_random + "@" + uid_machine
+    return uid_full
 
 def dayHandleFromDate(dateWanted):
     for each in days:
@@ -233,6 +241,8 @@ class task:
         for each in parentEvents:
             self.parentEvents.append(each)
         self.dateTime = self.startTime
+        self.uid = generateUID()
+        print self.uid
     
     def getdate(self):
         hdate = str(self.startTime).split()[0].split("-")
