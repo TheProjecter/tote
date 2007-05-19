@@ -7,6 +7,9 @@ import icalHandler
 import time
 import datetime
 
+treeitems_uids = {}
+treetasks_uids = {}
+
 (
   COLOR_RED,
   COLOR_GREEN,
@@ -23,8 +26,9 @@ import datetime
     COLUMN_TASKS_COMPLETED,
     COLUMN_TASKS_NAME,
     COLUMN_TASKS_DUE,
-    COLUMN_TASKS_DESCRIPTION
-) = range(4)
+    COLUMN_TASKS_DESCRIPTION,
+    COLUMN_TASKS_UID
+) = range(5)
 
 (
     COLUMN_BOTH_COMPLETED,
@@ -311,6 +315,7 @@ class ToteMainWindow(gtk.Window):
             
         for item in taskList:
             iteration = lstore_both.append()
+            treeitems_uids[iteration] = item.uid
             lstore_both.set(iteration,
                 COLUMN_BOTH_COMPLETED, False,
                 COLUMN_BOTH_NAME, item.name,
@@ -321,6 +326,7 @@ class ToteMainWindow(gtk.Window):
                 
         for item in eventList:
             iteration = lstore_both.append()
+            treeitems_uids[iteration] = item.uid
             lstore_both.set(iteration,
                 COLUMN_BOTH_COMPLETED, False,
                 COLUMN_BOTH_NAME, item.name,
@@ -352,15 +358,18 @@ class ToteMainWindow(gtk.Window):
 #            gobject.TYPE_UINT,
 			gobject.TYPE_STRING,
             gobject.TYPE_STRING,
+            gobject.TYPE_STRING,
             gobject.TYPE_STRING)
 
         for item in taskList:
             iter = lstore_tasks.append()
+            treetasks_uids[iter] = item.uid
             lstore_tasks.set(iter,
                 COLUMN_TASKS_COMPLETED, False,
                 COLUMN_TASKS_NAME, item.name,
                 COLUMN_TASKS_DUE, nuclasses.shortTime(item.dueTime),
-                COLUMN_TASKS_DESCRIPTION, item.description)
+                COLUMN_TASKS_DESCRIPTION, item.description,
+                COLUMN_TASKS_UID, item.uid)
         return lstore_tasks
 
     def fixed_toggled(self, cell, path, model_tasks):
@@ -577,7 +586,26 @@ class ToteMainWindow(gtk.Window):
         dialog.show()
 
     def activate_remove(self, action):
-        print "I'm here"
+        (bothstore, bothiter) = self.treeview_both.get_selection().get_selected()
+        (taskstore, taskiter) = self.treeview.get_selection().get_selected()
+        uid = taskstore.get(taskiter, COLUMN_TASKS_UID)
+        print "CHOSEN: ", uid[0]
+        task = nuclasses.taskFromUid(uid[0])
+        dialog = gtk.MessageDialog(self, gtk.DIALOG_DESTROY_WITH_PARENT,
+            gtk.MESSAGE_QUESTION, gtk.BUTTONS_YES_NO, 
+            'Do you really want to remove the task "%s"' % taskstore.get(taskiter, COLUMN_TASKS_NAME))
+        def do_response(d, r):
+            d.destroy()
+            if r == -9:
+                pass
+            elif r == -8:
+                nuclasses.tasks.remove(task)
+                self.treeview_both.set_model(self.__create_model_both(nuclasses.tasks, nuclasses.events))
+                self.treeview.set_model(self.__create_model_tasks(nuclasses.tasks))
+        dialog.connect ("response", do_response)
+        dialog.show()
+        
+        
 
     def activate_open(self, action):
         tempdict = icalHandler.importiCalFromFile("/home/astromme/icaltest.ics")

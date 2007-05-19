@@ -7,6 +7,7 @@ tomorrows = ["none"]
 import datetime
 from random import randint
 from socket import gethostname
+import uuid
 
 ### UTC CLASS. DISABLE IF NECESSARY
 #import datetime
@@ -109,6 +110,12 @@ def generateUID():
     uid_machine = str(gethostname())
     uid_full = uid_date + "-" + uid_random + "@" + uid_machine
     return uid_full
+
+def taskFromUid(uid):
+    for each in tasks:
+        if each.uid.__str__() == uid:
+            return each
+    return None
 
 def dayHandleFromDate(dateWanted):
     for each in days:
@@ -241,7 +248,7 @@ class task:
         for each in parentEvents:
             self.parentEvents.append(each)
         self.dateTime = self.startTime
-        self.uid = generateUID()
+        self.uid = uuid.uuid1()
         print self.uid
     
     def getdate(self):
@@ -318,6 +325,7 @@ class event:
                 endTime = startTime.replace(day=startTime.day+1) #One day from now
         self.dateTime = self.startTime
         self.isBlock = isBlock
+        self.uid = uuid.uuid1()
         
     def getdate(self):
         hdate = str(self.startTime).split()[0].split("-")
