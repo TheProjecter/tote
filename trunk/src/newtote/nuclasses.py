@@ -35,6 +35,25 @@ utc = UTC()
 def convertToSeconds(m=0, h=0, d=0, w=0, y=0):
     return m*60 + h*3600 + d*3600*24 + w*7*24*3600 + y*365*24*3600
 
+def secondsToHours(seconds, round):
+    if round:
+        hours = seconds/3600
+    elif not round:
+        hours = seconds/3600.
+    
+    return hours
+
+def secondsToHoursMinutes(seconds, round):
+    h = seconds/3600.
+    hours = int(h)
+    remaining_seconds = (h - hours)*3600
+    if round:
+        minutes = remaining_seconds/60
+    elif not round:
+        minutes = remaining_seconds/60.
+    return (hours, minutes)
+        
+
 def addTime(currentTime, seconds=0):
     import time
     return time.localtime(time.mktime(currentTime) + int(seconds)) #Find time in secs, add needed seconds, convert back into 9field tuple
@@ -211,7 +230,14 @@ def taskCreator():
 
 
 class task:
-    def __init__(self, name, startTime=-1, dueTime=-1, description="", parentEvents=[], resources=[], relatedTasks=[], isProject=0):
+    def __init__(self, name, startTime=-1, dueTime=-1, description="", parentEvents=[], resources=[], relatedTasks=[], isProject=0, uid=-1):
+        if uid == -1:
+            self.uid = uuid.uuid1()
+        else:
+            self.uid = uuid.UUID(uid)
+        otherTask = taskFromUid(self.uid)
+        if otherTask != None:
+            return otherTask
         #Setting the dates
         import time
         tasks.append(self)
@@ -248,8 +274,7 @@ class task:
         for each in parentEvents:
             self.parentEvents.append(each)
         self.dateTime = self.startTime
-        self.uid = uuid.uuid1()
-        print self.uid
+
     
     def getdate(self):
         hdate = str(self.startTime).split()[0].split("-")

@@ -213,7 +213,9 @@ def tasksToVObject(tasks, cal=None):
     def populate(comp, task):
         """Populate the given vobject vevent with data from item."""
         comp.add('summary').value = task.name
-        
+        comp.add('uid').value = task.uid.hex #This may be buggy upon loading
+
+  
         try:
             dtstartLine = comp.add('dtstart')
             dtstartLine.value = task.dateTime
@@ -246,7 +248,6 @@ def tasksToVObject(tasks, cal=None):
     for task in tasks:
             try:
                 populate(cal.add('vevent'), task)
-            
             except:
                 continue
     cal.prettyPrint()
@@ -450,7 +451,7 @@ def itemsFromVObject(serializedcalobject=None):
                 change('startTime', dtstart)
                 change('duration', duration)
                 change('endTime', dtend)
-
+                change('uid', uid)
 #                if not filters or "transparency" not in filters:
 #                    change('transparency', status)
 
@@ -552,4 +553,4 @@ def itemsFromVObject(serializedcalobject=None):
 
 def addTasksFromCalDict(itemlist):
     for t in itemlist:
-        nuclasses.task(t["name"], description=t["description"], startTime=t["startTime"])
+        nuclasses.task(t["name"], description=t["description"], startTime=t["startTime"], uid=t["uid"])
