@@ -382,11 +382,26 @@ class ToteMainWindow(gtk.Window):
 
         # set new value
         model_tasks.set(iter, COLUMN_TASKS_COMPLETED, fixed)
+        
+    def update_treeview_text(self, cell, path, new_text, model):
+        """
+        Called when a text cell is edited. It puts the new text
+        in the model so that it is displayed properly.
+        """
+        model[path][COLUMN_TASKS_DESCRIPTION] = new_text
+        nuclasses.taskFromUid(model[path][COLUMN_TASKS_UID]).description = new_text
 
     def __add_columns_both(self, treeview_both):
+        """
+        Updates the items in the TreeView for the 'both' tab
+        """
         model_both = treeview_both.get_model()
         renderer_both = gtk.CellRendererToggle()
         renderer_both.connect('toggled', self.fixed_toggled, model_both)
+        
+        renderer_text = gtk.CellRendererText()
+        renderer_text.set_property( 'editable', True )
+        renderer_text.connect( 'edited', self.update_treeview_text, model_both)
         
         column = gtk.TreeViewColumn('Done', renderer_both, active=COLUMN_BOTH_COMPLETED)
 
@@ -433,6 +448,10 @@ class ToteMainWindow(gtk.Window):
         # column for fixed toggles
         renderer = gtk.CellRendererToggle()
         renderer.connect('toggled', self.fixed_toggled, model_tasks)
+        
+        renderer_text = gtk.CellRendererText()
+        renderer_text.set_property( 'editable', True )
+        renderer_text.connect( 'edited', self.update_treeview_text, model_tasks)
 
         column = gtk.TreeViewColumn('Done', renderer, active=COLUMN_TASKS_COMPLETED)
 
@@ -455,7 +474,7 @@ class ToteMainWindow(gtk.Window):
         treeview.append_column(column)
 
         # column for description
-        column = gtk.TreeViewColumn('Description', gtk.CellRendererText(),
+        column = gtk.TreeViewColumn('Description', renderer_text,
                                      text=COLUMN_TASKS_DESCRIPTION)
         column.set_sort_column_id(COLUMN_TASKS_NAME)
         treeview.append_column(column)
@@ -641,15 +660,58 @@ class ToteMainWindow(gtk.Window):
         #iter = buffer.get_iter_at_mark(buffer.get_insert())
         # row = iter.get_line()
         # col = iter.get_line_offset()
-        print iter
+        
         if iter != None:
             nameData = model.get(iter, COLUMN_TASKS_NAME)[0]
             dateData = model.get(iter, COLUMN_TASKS_DUE)[0]
-            print nameData, dateData
-            #hoursFromNow = nuclasses.timeBetweenTimes(time1, time2)
+            timeNow = datetime.datetime.now()
+            timeOfTask = nuclasses.taskFromUid(model.get(iter, COLUMN_TASKS_UID)[0]).dueTime
+            delta = timeOfTask - timeNow
+            deltaHours = nuclasses.secondsToHours(delta.seconds, 1)
+            print delta.days
+            print delta.seconds
+            print nuclasses.secondsToHoursMinutes(delta.seconds, 1)
+            if delta.days < 0: #Task due in the past
+                print "in the past"
+                if delta.days <= -2: #If it was due at least one day ago, we put days and hours
+                    print "more than one day ago"
+                    deltaDays = -(delta.days) - 1 #Negative day format is given as -Xdays, +Yseconds
+                    deltaHours = nuclasses.secondsToHours(24*3600 - delta.seconds, 1) #function(seconds, roundDown?)
+                    messageString = "%s was due % days and % hours ago. Yikes!" % (nameData, deltaDays, deltaHours)
+                elif delta.days > -2: #Otherwise, we only put hours
+                    print "less than one day ago"
+                    messageString = "%s was due % hours ago. Yikes!" % (nameData, deltaHours)
+                    if deltaHours < 4:
+                        if deltaHours < 1:
+                            (deltaHours, deltaMinutes) = nuclasses.secondsToHoursMinutes(24*3600 - delta.seconds, 1) # function(seconds, round down?)
+                            messageString = "%s was due % minutes ago. Yikes!" % (nameData, deltaMinutes)
+                        else:
+                            (deltaHours, deltaMinutes) = nuclasses.secondsToHoursMinutes(24*3600 - delta.seconds, 1) # function(seconds, round down?)
+                            messageString = "%s was due % hours and % minutes ago. Yikes!" % (nameData, deltaHours, deltaMinutes)
+                    
+            elif delta.days >= 0: #Task due in the future
+                print "in the future"
+                if delta.days >= 1: #If it will be due >1 day, put days + hours
+                    print "More than one day ahead"
+                    deltaDays = delta.days
+                    deltaHours = nuclasses.secondsToHours(delta.seconds, 1) #function(seconds, roundDown?)
+                    messageString = "%s is due %s hours. This is %s days and %s hours from now" % (nameData, dateData, deltaDays, deltaHours)
+                elif delta.days < 1: #Otherwise, we only put hours
+                    print "less than one day ahead"
+                    if deltaHours < 4:
+                        print "Less than four hours ahead"
+                        if deltaHours < 1:
+                            (deltaHours, deltaMinutes) = nuclasses.secondsToHoursMinutes(delta.seconds, 1) # function(seconds, round down?)
+                            messageString = '%s is due in %s minutes!' % (nameData, deltaMinutes)                        
+                        else:
+                            (deltaHours, deltaMinutes) = nuclasses.secondsToHoursMinutes(delta.seconds, 1) # function(seconds, round down?)
+                            messageString = '%s is due %s hours. This is %s hours and %s minutes from now' % (nameData, dateData, deltaHours, deltaMinutes)
+                    else:
+                        messageString = '%s is due %s hours. This is %s hours from now' % (nameData, dateData, deltaHours)
+            self.statusbar.push(0, messageString)        
             hoursFromNow = "<Sorry - Incomplete>"
-            self.statusbar.push(0,
-        '%s is due %s hours. This is %s hours from now' % (nameData, dateData, hoursFromNow))
+            #self.statusbar.push(0,
+        #'%s is due %s hours. This is %s hours from now' % (nameData, dateData, hoursFromNow))
         else:
             self.statusbar.push(0,
         'No Task Selected')
