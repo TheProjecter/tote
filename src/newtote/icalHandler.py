@@ -179,27 +179,27 @@ def taskToiCal(task, ical):
 def removeToteDirs(path):
     pass
 
-
-cal = vobject.newFromBehavior('vcalendar')
-print cal.behavior
-
-
-ical = vobject.iCalendar()
-print ical
-
-ical.add('vevent')
-ical.vevent.add('summary').value = "Hey there folks"
-ical.prettyPrint()
-
-print utc
-
-icalStart = ical.vevent.add('dtstart')
-icalStart.value = datetime.datetime(2006, 2, 16, 0)
-print "amhere"
-ical.prettyPrint()
-
-card = vobject.vCard()
-print card.behavior
+#
+#cal = vobject.newFromBehavior('vcalendar')
+#print cal.behavior
+#
+#
+#ical = vobject.iCalendar()
+#print ical
+#
+#ical.add('vevent')
+#ical.vevent.add('summary').value = "Hey there folks"
+#ical.prettyPrint()
+#
+#print utc
+#
+#icalStart = ical.vevent.add('dtstart')
+#icalStart.value = datetime.datetime(2006, 2, 16, 0)
+#print "amhere"
+#ical.prettyPrint()
+#
+#card = vobject.vCard()
+#print card.behavior
 
 
 #eventToiCal(ical, nuclasses.events[2])
