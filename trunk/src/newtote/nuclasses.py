@@ -45,6 +45,9 @@ utc = UTC()
 def log_error(error_text):
     print error_text
 
+def log_info(info_text):
+    print info_text
+
 def convertToSeconds(m=0, h=0, d=0, w=0, y=0):
     return m*60 + h*3600 + d*3600*24 + w*7*24*3600 + y*365*24*3600
 
