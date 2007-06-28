@@ -36,14 +36,20 @@ treetasks_uids = {}
     COLUMN_BOTH_TYPE,
     COLUMN_BOTH_DATE,
     COLUMN_BOTH_DESCRIPTION,
+    COLUMN_BOTH_UID,
     COLUMN_BOTH_RELATED
-) = range(6)
+) = range(7)
  
 (
     OPTION_ADD_TASK,
     OPTION_ADD_EVENT
 ) = range(2)
 
+(
+    NOTEBOOK_EVENTS,
+    NOTEBOOK_TASKS,
+    NOTEBOOK_BOTH
+) = range(3)
 
 ui_info = \
 '''<ui>
@@ -222,7 +228,7 @@ class ToteMainWindow(gtk.Window):
         hpaned.add1(calendarFrame)
         hpaned.add2(taskFrame)
         
-        theNotebook = gtk.Notebook()
+        self.theNotebook = gtk.Notebook()
         
         self.mainCal = gtk.Calendar()
         calendarFrame.add(self.mainCal)
@@ -238,20 +244,20 @@ class ToteMainWindow(gtk.Window):
         sw_tasks.set_policy(gtk.POLICY_NEVER, gtk.POLICY_AUTOMATIC)
         notebook_label_tasks = gtk.Label()
         notebook_label_tasks.set_label("Tasks")
-        theNotebook.prepend_page(sw_tasks, notebook_label_tasks)
-        taskFrame.add(theNotebook)
+        self.theNotebook.prepend_page(sw_tasks, notebook_label_tasks)
+        taskFrame.add(self.theNotebook)
         
         calTable = gtk.Table(1, 5, False)
         notebook_label_events = gtk.Label()
         notebook_label_events.set_label("Events")
-        theNotebook.prepend_page(calTable, notebook_label_events)
+        self.theNotebook.prepend_page(calTable, notebook_label_events)
         
         sw_both = gtk.ScrolledWindow()
         sw_both.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         sw_both.set_shadow_type(gtk.SHADOW_ETCHED_IN)
         notebook_label_both = gtk.Label()
         notebook_label_both.set_label("Both")
-        theNotebook.append_page(sw_both, notebook_label_both)
+        self.theNotebook.append_page(sw_both, notebook_label_both)
         
         #sw_both declarations:
         model_both = self.__create_model_both(nuclasses.tasks, nuclasses.events)
@@ -310,6 +316,7 @@ class ToteMainWindow(gtk.Window):
             gobject.TYPE_STRING,
             gobject.TYPE_STRING,
             gobject.TYPE_STRING,
+            gobject.TYPE_STRING,
             gobject.TYPE_STRING)
             #gobject.TYPE_STRING)
             
@@ -321,7 +328,8 @@ class ToteMainWindow(gtk.Window):
                 COLUMN_BOTH_NAME, item.name,
                 COLUMN_BOTH_TYPE, "Task",
                 COLUMN_BOTH_DATE, item.getdate(),
-                COLUMN_BOTH_DESCRIPTION, item.description)
+                COLUMN_BOTH_DESCRIPTION, item.description,
+                COLUMN_BOTH_UID, item.uid)
                 #COLUMN_BOTH_RELATED, "Nothing")
                 
         for item in eventList:
@@ -332,7 +340,8 @@ class ToteMainWindow(gtk.Window):
                 COLUMN_BOTH_NAME, item.name,
                 COLUMN_BOTH_TYPE, "Event",
                 COLUMN_BOTH_DATE, item.getdate(),
-                COLUMN_BOTH_DESCRIPTION, item.description)
+                COLUMN_BOTH_DESCRIPTION, item.description,
+                COLUMN_BOTH_UID, item.uid)
                 #COLUMN_BOTH_RELATED, "Nothing")
                 
         return lstore_both
@@ -605,23 +614,44 @@ class ToteMainWindow(gtk.Window):
         dialog.show()
 
     def activate_remove(self, action):
-        (bothstore, bothiter) = self.treeview_both.get_selection().get_selected()
-        (taskstore, taskiter) = self.treeview.get_selection().get_selected()
-        uid = taskstore.get(taskiter, COLUMN_TASKS_UID)
-        print "CHOSEN: ", uid[0]
-        task = nuclasses.taskFromUid(uid[0])
+        page = self.theNotebook.get_current_page()
+        if page == NOTEBOOK_BOTH:
+            (store, iter) = self.treeview_both.get_selection().get_selected()
+            uid = store.get(iter, COLUMN_BOTH_UID)
+            column_name = COLUMN_BOTH_NAME
+            type = store.get(iter, COLUMN_BOTH_TYPE)[0]
+            if type == "Task": #Yes, it's only capitalized in this instance
+                type = "task"
+                item = nuclasses.taskFromUid(uid[0])
+            elif type == "Event":
+                type = "event"
+                item = nuclasses.eventFromUid(uid[0])
+            else:
+                nuclasses.log_error("Error: Could not determine type. Item '%s' did not match either Task or Event." % type)
+        elif page == NOTEBOOK_TASKS:
+            (store, iter) = self.treeview.get_selection().get_selected()
+            uid = store.get(iter, COLUMN_TASKS_UID)
+            column_name = COLUMN_TASKS_NAME
+            item = nuclasses.taskFromUid(uid[0])
+        elif page == NOTEBOOK_EVENTS:
+            pass
+        else:
+            nuclasses.log_error("No page selected? Error with determining the active notebook page")
         dialog = gtk.MessageDialog(self, gtk.DIALOG_DESTROY_WITH_PARENT,
             gtk.MESSAGE_QUESTION, gtk.BUTTONS_YES_NO, 
-            'Do you really want to remove the task "%s"' % taskstore.get(taskiter, COLUMN_TASKS_NAME))
+            'Do you really want to remove the %s: "%s"' % (item.__name__, store.get(iter, column_name)[0]))
         def do_response(d, r):
             d.destroy()
             if r == -9:
                 pass
             elif r == -8:
-                nuclasses.tasks.remove(task)
+                try:
+                    nuclasses.tasks.remove(item)
+                except:
+                    nuclasses.events.remove(item)
                 self.treeview_both.set_model(self.__create_model_both(nuclasses.tasks, nuclasses.events))
                 self.treeview.set_model(self.__create_model_tasks(nuclasses.tasks))
-        dialog.connect ("response", do_response)
+        dialog.connect("response", do_response)
         dialog.show()
         
         
