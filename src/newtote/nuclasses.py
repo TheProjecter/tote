@@ -2,6 +2,7 @@
 days = []
 tasks = []
 events = []
+blocks = []
 tomorrows = ["none"]
 
 import datetime
@@ -13,6 +14,15 @@ import uuid
 #import datetime
 ZERO = datetime.timedelta(0)
 HOUR = datetime.timedelta(hours=1)
+
+
+(
+    DAILY_MEETINGS,
+    WEEKLY_MEETINGS,
+    MONTHLY_MEETINGS,
+    YEARLY_MEETINGS,
+    SINGLE_MEETINGS
+) = range(5)
 
 # A UTC class.
 
@@ -31,6 +41,9 @@ class UTC(datetime.tzinfo):
 utc = UTC()
 #####
 
+
+def log_error(error_text):
+    print error_text
 
 def convertToSeconds(m=0, h=0, d=0, w=0, y=0):
     return m*60 + h*3600 + d*3600*24 + w*7*24*3600 + y*365*24*3600
@@ -134,6 +147,41 @@ def taskFromUid(uid):
     for each in tasks:
         if each.uid.__str__() == uid:
             return each
+        else:
+            pass
+    return None
+
+def eventFromUid(uid):
+    for each in events:
+        if each.uid.__str__() == uid:
+            return each
+        else:
+            pass
+    return None
+
+def blockFromUid(uid):
+    for each in blocks:
+        if each.uid.__str__() == uid:
+            return each
+        else:
+            pass
+    return None
+
+def meetingFromUid(uid):
+    for each in meetings:
+        if each.uid.__str__() == uid:
+            return each
+        else:
+            pass
+    return None
+
+def meetingFromUid_in_block(uid, block):
+    for list in block.all_meetings:
+        for meeting in list:
+            if meeting.uid.__str__() == uid:
+                return (meeting, block.all_meetings.index(list))
+            else:
+                pass
     return None
 
 def dayHandleFromDate(dateWanted):
@@ -231,11 +279,12 @@ def taskCreator():
 
 class task:
     def __init__(self, name, startTime=-1, dueTime=-1, description="", parentEvents=[], resources=[], relatedTasks=[], isProject=0, uid=-1):
+        self.__name__ = "task"
         if uid == -1:
             self.uid = uuid.uuid1()
         else:
             self.uid = uuid.UUID(uid)
-        otherTask = taskFromUid(self.uid)
+        otherTask = taskFromUid(self.uid)   #Check to see if we already have a task w/ this uid. If so, then return that one instead
         if otherTask != None:
             return otherTask
         #Setting the dates
@@ -325,12 +374,72 @@ class resource:
 		for item in attachedTo:
 			self.attachedTo.append(item)
 		
+def time_in_use(day, time, endTime=-1):
+    pass #This will use the blocks/events/tasks to determine if the time is in use
 
+class meeting:
+    def __init__(self, startTime, endTime, uid=-1):
+        self.__name__ = "meeting"
+        if uid == -1:
+            self.uid = uuid.uuid1()
+        else:
+            self.uid = uuid.UUID(uid)
+        otherMeeting = meetingFromUid(self.uid)
+        if otherMeeting != None:
+            return otherMeeting
+        self.startTime = startTime
+        self.endTime = endTime
 
+class block:
+    def __init__(self, name, description="", uid=-1):
+        self.__name__ = "block"
+        if uid == -1:
+            self.uid = uuid.uuid1()
+        else:
+            self.uid = uuid.UUID(uid)
+        otherBlock = blockFromUid(self.uid)   #Check to see if we already have a task w/ this uid. If so, then return that one instead
+        if otherBlock != None:
+            return otherBlock
+        
+        self.description = description
+        
+        self.daily_meetings = []
+        self.weekly_meetings = []
+        self.monthly_meetings = []
+        self.yearly_meetings = []
+        self.single_meetings = []
+        self.all_meetings = (self.daily_meetings, self.weekly_meetings, self.monthly_meetings, self.yearly_meetings, self.single_meetings)
+        
+    def add_daily_meeting_time(self, startTime, endTime):
+        self.daily_meetings.append((meeting(startTime, endTime), -1))
+    def add_weekly_meeting_time(self, dayOfWeek, startTime, endTime):
+        self.weekly_meetings.append((meeting(startTime, endTime), dayOfWeek))
+    def add_monthly_meeting_time(self, dayOfMonth, starTime, endTime):
+        self.monthly_meetings.append((meeting(startTime, endTime), dayOfMonth))
+    def add_yearly_meeting_time(self, dayOfYear, startTime, endTime):
+        self.yearly_meetings.append((meeting(startTime, endTime), dayOfYear))
+    def add_single_meeting_time(self, day, startTime, endTime):
+        self.single_meetings.append((meeting(startTime, endTime), day))
+        
+    def remove_meeting_time(self, uid):
+        (meeting, repition) = meetingFromUid_in_block(uid, block)
+        self.all_meetings[repition].remove(meeting)
+        
+        
+    
 
 
 class event:
-    def __init__(self, name, description="", startTime=-1, endTime=-1, isBlock=0):
+    def __init__(self, name, description="", startTime=-1, endTime=-1, isBlock=0, uid=-1):
+        self.__name__ = "event"
+        if uid == -1:
+            self.uid = uuid.uuid1()
+        else:
+            self.uid = uuid.UUID(uid)
+        otherEvent = eventFromUid(self.uid)   #Check to see if we already have a task w/ this uid. If so, then return that one instead
+        if otherEvent != None:
+            return otherEvent
+        
         events.append(self)
         self.name = name
         self.description = description
@@ -385,12 +494,12 @@ import time
 #print timeBetweenTimes(time.localtime(), project1.endTime)
 
 #Some Test Days:
-day1 = day("04.27.2007")
-day2 = day("04.20.2007")
-dayandrew = day("09.28.1989", startOfDay="0145", endOfDay="2400")
-dayjohn = day("06.29.1992", startOfDay="0550")
-dayroy = day("12.01.1947")
-daymarleen = day("04.15.1957")
+#day1 = day("04.27.2007")
+#day2 = day("04.20.2007")
+#dayandrew = day("09.28.1989", startOfDay="0145", endOfDay="2400")
+#dayjohn = day("06.29.1992", startOfDay="0550")
+#dayroy = day("12.01.1947")
+#daymarleen = day("04.15.1957")
 
 #Some sample Tasks
 task1 = task("First", description="A task1", startTime=datetime.datetime.now())
