@@ -7,6 +7,21 @@ from xml.dom import minidom
 USER_AGENT = 'Tote/0.1 +http://tote.chatonka.com/' #Not in use yet
 
 
+def zoho_list_item_to_tote_task(item):
+    print item
+    listID = item[0]
+    listName = item[1]
+    subItems = item[2]
+    tote_task_item = nuclasses.task(listName, zohoID=listID)
+    for each in subItems:
+        listID = each[0]
+        listName = each[1]
+        nuclasses.task(listName, zohoID=listID, parentTask=tote_task_item)
+    return tote_task_item
+    
+        
+
+
 class ZohoAccount:
     def __init__(self):
         self.API_KEY="635ea1a7ddff850c5b7301b33ea3a944" #This is for Tote ONLY
@@ -19,6 +34,12 @@ class ZohoAccount:
         self.known_pages = {} #Format of {'id_number', 'page_title'}
         self.current_home_page = None
         
+    def get_ticket(self):
+        if not self.current_ticket:
+            return self.login(self.login_id, self.password)
+        else:
+            return self.current_ticket
+
     def add_known_page(self, pageID, pageTitle):
         for id in self.known_pages:
             if id == pageID:
@@ -43,12 +64,8 @@ class ZohoAccount:
         return None
     
     def get_pages(self):
-        if not self.current_ticket:
-            ticket = self.login(self.login_id, self.password)
-        else:
-            ticket = self.current_ticket
-        response = urllib.urlopen(self.ALL_PAGES_XML + "?ticket=%s&apikey=%s" % (ticket, self.API_KEY))
-        pages_unformatted_xml = response.read()
+        ticket = self.get_ticket()
+        pages_unformatted_xml = urllib.urlopen(self.ALL_PAGES_XML + "?ticket=%s&apikey=%s" % (ticket, self.API_KEY)).read()
         pages_xml = minidom.parseString(pages_unformatted_xml)
         nuclasses.log_info(pages_xml.toxml())
         list_of_page_details = pages_xml.firstChild.firstChild.firstChild.childNodes
@@ -59,12 +76,42 @@ class ZohoAccount:
             if current_page.childNodes[2].firstChild.data == "true":
                 self.current_home_page = pageID
             self.add_known_page(pageID, pageTitle)
-        print self.known_pages
-        print self.current_home_page
-        print self.known_pages[self.current_home_page]
+        return self.known_pages
+           
+    def reset_pages(self):
+        self.known_pages = {}
+        return self.get_pages()
             
-    
+    def get_lists_on_page(self, pageID):
+        ticket = self.get_ticket()
+        lists_unformatted_xml = urllib.urlopen(self.ALL_LISTS_XML + "?ticket=%s&apikey=%s&pageId=%s" % (ticket, self.API_KEY, pageID)).read()
+        lists_xml = minidom.parseString(lists_unformatted_xml)
+        nuclasses.log_info(lists_xml.toxml())
+        lists_details = lists_xml.firstChild.firstChild.firstChild.lastChild.childNodes
+        lists_on_page = []
+        for each in lists_details:
+            listID = each.firstChild.firstChild.data
+            listName = each.childNodes[1].firstChild.data
+            try:
+                items = []
+                unit = each.childNodes[2]
+                while unit.nextSibling != None:
+                    items.append(unit)
+                    unit = unit.nextSibling
+            except IndexError:
+                nuclasses.log_info("List '%s' has no subItems." % listName)
+                items = []
+            lists_on_page.append([listID, listName, items])
+        return lists_on_page
         
+    def xml_subItems_to_lists(self, item):
+        print item
+        subItemsList = []
+        for each in item[2]:
+            id = each.childNodes[0].firstChild.data
+            name = each.childNodes[1].firstChild.data
+            subItemsList.append([id, name, []])
+        return [item[0], item[1], subItemsList]
     
     def login(self, login_id, password):
         urlstring = "https://accounts.zoho.com/login?servicename=ZohoPlanner&silent=true&LOGIN_ID=%s&PASSWORD=%s&FROM_AGENT=true" %(login_id, password)
@@ -78,6 +125,13 @@ class ZohoAccount:
             
 andrew = ZohoAccount()
 andrew.get_pages()
+a = andrew.get_lists_on_page("81351")
+print "A is: ", a
+b = andrew.xml_subItems_to_lists(a[0])
+print "B is: ", b
+c = zoho_list_item_to_tote_task(andrew.xml_subItems_to_lists(andrew.get_lists_on_page("81351")[0]))
+print "C is: ", c
+
             
             
 # 99bf6d6c4e24e7b23e02fc5e2f375559

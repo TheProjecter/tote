@@ -43,10 +43,10 @@ utc = UTC()
 
 
 def log_error(error_text):
-    print error_text
+    print "ERROR: ", error_text
 
 def log_info(info_text):
-    print info_text
+    print "LOG: ", info_text
 
 def convertToSeconds(m=0, h=0, d=0, w=0, y=0):
     return m*60 + h*3600 + d*3600*24 + w*7*24*3600 + y*365*24*3600
@@ -280,7 +280,7 @@ def taskCreator():
 
 
 class task:
-    def __init__(self, name, startTime=-1, dueTime=-1, description="", parentEvents=[], resources=[], relatedTasks=[], isProject=0, uid=-1):
+    def __init__(self, name, startTime=-1, dueTime=-1, description="", parentEvents=[], parentTask=-1, resources=[], relatedTasks=[], isProject=0, uid=-1, zohoID=None):
         self.__name__ = "task"
         if uid == -1:
             self.uid = uuid.uuid1()
@@ -289,10 +289,15 @@ class task:
         otherTask = taskFromUid(self.uid)   #Check to see if we already have a task w/ this uid. If so, then return that one instead
         if otherTask != None:
             return otherTask
+        self.zohoID = zohoID
         #Setting the dates
         import time
         tasks.append(self)
         self.name = name
+        if parentTask == -1:
+            self.parentTask = None
+        else:
+            self.parentTask = parentTask
         if startTime == -1:
             self.startTime = datetime.datetime.now()
         else:

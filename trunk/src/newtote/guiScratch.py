@@ -4,6 +4,7 @@ import gobject
 import gtk
 import nuclasses
 import icalHandler
+import zohoApiInteraction
 import time
 import datetime
 
@@ -129,7 +130,7 @@ def register_stock_icons():
         factory.add('demo-gtk-logo', icon_set)
 
     except gobject.GError, error:
-        print 'failed to load GTK logo for toolbar'
+        nuclasses.log_error('failed to load GTK logo for toolbar')
 
 class ToteMainWindow(gtk.Window):
     def __init__(self, parent=None):
@@ -153,7 +154,7 @@ class ToteMainWindow(gtk.Window):
         try:
             mergeid = merge.add_ui_from_string(ui_info)
         except gobject.GError, msg:
-            print "building menus failed: %s" % msg
+            nuclasses.log_error("building menus failed: %s" % msg)
         mainToolBar = merge.get_widget("/MenuBar")
         mainToolBar.show()
 
@@ -350,14 +351,13 @@ class ToteMainWindow(gtk.Window):
         #text = entry.get_text()
         entryText = self.quickListEntry.get_text()
         comboText = self.quickListCombo.get_active()
-        print entryText, comboText
         #print widget, entry, "Text is: ", entry.get_text()
         if comboText == OPTION_ADD_TASK:
             nuclasses.task(entryText)
         elif comboText == OPTION_ADD_EVENT:
             nuclasses.event(entryText)
         else:
-            print "A weird error occured... Neither a task nor an event was selected"
+            nuclasses.log_error("A weird error occured... Neither a task nor an event was selected")
         self.treeview_both.set_model(self.__create_model_both(nuclasses.tasks, nuclasses.events))
         self.treeview.set_model(self.__create_model_tasks(nuclasses.tasks))
 
@@ -698,9 +698,6 @@ class ToteMainWindow(gtk.Window):
             timeOfTask = nuclasses.taskFromUid(model.get(iter, COLUMN_TASKS_UID)[0]).dueTime
             delta = timeOfTask - timeNow
             deltaHours = nuclasses.secondsToHours(delta.seconds, 1)
-            print delta.days
-            print delta.seconds
-            print nuclasses.secondsToHoursMinutes(delta.seconds, 1)
             if delta.days < 0: #Task due in the past
                 if delta.days <= -2: #If it was due at least one day ago, we put days and hours
                     deltaDays = -(delta.days) - 1 #Negative day format is given as -Xdays, +Yseconds
@@ -755,7 +752,7 @@ class ToteMainWindow(gtk.Window):
         taskList = []
         eventList = []
         for item in items:
-            print item.__class__.__name__
+            nuclasses.log_info("Item.__class__.__name__ is: %s" % item.__class__.__name__)
             if item.__class__.__name__ == "task":
                 taskList.append(item)
             elif item.__class__.__name__ == "event":
@@ -764,14 +761,14 @@ class ToteMainWindow(gtk.Window):
                 pass
         self.treeview.set_model(self.__create_model_tasks(taskList))
         self.treeview_both.set_model(self.__create_model_both(taskList, eventList))
-        print taskList, eventList
+        nuclasses.log_info("Here is the taskList, eventList: %s %s" % (taskList, eventList))
     
     def calendar_day_selected_double_click(self, widget):
         pass
 
     def calendarDateToDateTime(self, calendar):
         year, month, day = calendar.get_date()
-        print year, month, day
+        nuclasses.log_info("Here is the year, month, day: %s %s %s" % (year, month, day))
         theTime = datetime.datetime(year, month+1, day)
         return theTime
     
