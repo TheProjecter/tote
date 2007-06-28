@@ -702,14 +702,11 @@ class ToteMainWindow(gtk.Window):
             print delta.seconds
             print nuclasses.secondsToHoursMinutes(delta.seconds, 1)
             if delta.days < 0: #Task due in the past
-                print "in the past"
                 if delta.days <= -2: #If it was due at least one day ago, we put days and hours
-                    print "more than one day ago"
                     deltaDays = -(delta.days) - 1 #Negative day format is given as -Xdays, +Yseconds
                     deltaHours = nuclasses.secondsToHours(24*3600 - delta.seconds, 1) #function(seconds, roundDown?)
                     messageString = "%s was due % days and % hours ago. Yikes!" % (nameData, deltaDays, deltaHours)
                 elif delta.days > -2: #Otherwise, we only put hours
-                    print "less than one day ago"
                     messageString = "%s was due % hours ago. Yikes!" % (nameData, deltaHours)
                     if deltaHours < 4:
                         if deltaHours < 1:
@@ -720,16 +717,12 @@ class ToteMainWindow(gtk.Window):
                             messageString = "%s was due % hours and % minutes ago. Yikes!" % (nameData, deltaHours, deltaMinutes)
                     
             elif delta.days >= 0: #Task due in the future
-                print "in the future"
                 if delta.days >= 1: #If it will be due >1 day, put days + hours
-                    print "More than one day ahead"
                     deltaDays = delta.days
                     deltaHours = nuclasses.secondsToHours(delta.seconds, 1) #function(seconds, roundDown?)
                     messageString = "%s is due %s hours. This is %s days and %s hours from now" % (nameData, dateData, deltaDays, deltaHours)
                 elif delta.days < 1: #Otherwise, we only put hours
-                    print "less than one day ahead"
                     if deltaHours < 4:
-                        print "Less than four hours ahead"
                         if deltaHours < 1:
                             (deltaHours, deltaMinutes) = nuclasses.secondsToHoursMinutes(delta.seconds, 1) # function(seconds, round down?)
                             messageString = '%s is due in %s minutes!' % (nameData, deltaMinutes)                        

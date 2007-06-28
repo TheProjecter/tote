@@ -82,7 +82,6 @@ def shortTime(theTime):
     theTime = theTime.timetuple()
     longTime = time.asctime(theTime)
     splitTime = longTime.split(" ")
-    print splitTime
     shortenedTime = splitTime[1] + " " + splitTime[2] + ", " + splitTime[3].split(":")[0] + ":" + splitTime[3].split(":")[1]
     return shortenedTime
 
