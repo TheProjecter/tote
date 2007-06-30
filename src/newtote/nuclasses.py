@@ -169,23 +169,29 @@ def blockFromUid(uid):
             pass
     return None
 
-def blipFromUid(uid):
-    for each in blips:
-        if each.uid.__str__() == uid:
-            return each
-        else:
-            pass
-    return None
+#def blipFromUid(uid):
+#    for each in blips:
+#        if each.uid.__str__() == uid:
+#            return each
+#        else:
+#            pass
+#    return None
 
-def blipFromUid_in_block(uid, block):
-    for list in block.all_blips:
-        for blip in list:
+def blipFromUid(uid, block=None):
+    def findBlips(uid, block):
+        for blip in block.all_blips:
             if blip.uid.__str__() == uid:
-                return (blip, block.all_blips.index(list))
+                return (blip)
             else:
                 pass
-    return None
-
+        return None
+    if block=None:
+        for each in blocks:
+            findBlip(uid, each)
+    else:
+        findBlip(uid, block)
+        
+        
 def dayHandleFromDate(dateWanted):
     for each in days:
         print each.date, dateWanted
@@ -385,7 +391,7 @@ def time_in_use(day, time, endTime=-1):
     pass #This will use the blocks/events/tasks to determine if the time is in use
 
 class blip:
-    def __init__(self, startTime, endTime, uid=-1):
+    def __init__(self, startTime, endTime, uid=-1, repition_type=SINGLE, repition_details=-1):
         self.__name__ = "blip"
         if uid == -1:
             self.uid = uuid.uuid1()
@@ -396,6 +402,9 @@ class blip:
             return otherblip
         self.startTime = startTime
         self.endTime = endTime
+        self.repeat=(repition_type, repition_details)
+
+
 
 class block:
     def __init__(self, name, description="", uid=-1):
@@ -409,27 +418,38 @@ class block:
             return otherBlock
         
         self.description = description
-        
+
         self.single_blips = []
         self.daily_blips = []
         self.weekly_blips = []
         self.monthly_blips = []
         self.yearly_blips = []
-        self.all_blips = (self.single_blips, self.daily_blips, self.weekly_blips, self.monthly_blips, self.yearly_blips)
+        self.all_blips = []
         
-    def add_daily_blip_time(self, startTime, endTime):
-        self.daily_blips.append((blip(startTime, endTime), -1))
-    def add_weekly_blip_time(self, dayOfWeek, startTime, endTime):
-        self.weekly_blips.append((blip(startTime, endTime), dayOfWeek))
-    def add_monthly_blip_time(self, dayOfMonth, starTime, endTime):
-        self.monthly_blips.append((blip(startTime, endTime), dayOfMonth))
-    def add_yearly_blip_time(self, dayOfYear, startTime, endTime):
-        self.yearly_blips.append((blip(startTime, endTime), dayOfYear))
     def add_single_blip_time(self, day, startTime, endTime):
-        self.single_blips.append((blip(startTime, endTime), day))
+        theblip = blip(startTime, endTime, repition_type=SINGLE, repition_detials=day)
+        self.single_blips.append(theblip)
+        self.all_blips.append(theblip)
+    def add_daily_blip_time(self, startTime, endTime):
+        theblip = blip(startTime, endTime, repition_type=DAILY)
+        self.daily_blips.append(theblip)
+        self.all_blips.append(theblip)
+    def add_weekly_blip_time(self, dayOfWeek, startTime, endTime):
+        theblip=blip(startTime, endTime, reptition_type=WEEKLY, repition_details=dayOfWeek)
+        self.weekly_blips.append(theblip)
+        self.all_blips.append(theblip)
+    def add_monthly_blip_time(self, dayOfMonth, starTime, endTime):
+        theblip = blip(startTime, endTime, repition_type=MONTHLY, repition_details=dayOfMonth)
+        self.monthly_blips.append(theblip)
+        self.all_blips.append(theblip)
+    def add_yearly_blip_time(self, dayOfYear, startTime, endTime):
+        theblip = blip(startTime, endTime, repition_type=YEARLY, repition_details=dayOfYear)
+        self.yearly_blips.append(theblip)
+        self.all_blips.append(theblip)
+
         
     def remove_blip_time(self, uid):
-        (blip, repition) = blipFromUid_in_block(uid, block)
+        (blip, repition) = blipFromUid(uid, block)
         self.all_blips[repition].remove(blip)
         
         
