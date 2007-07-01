@@ -33,6 +33,9 @@ class ZohoAccount:
         self.current_ticket = None
         self.known_pages = {} #Format of {'id_number', 'page_title'}
         self.current_home_page = None
+
+    def build_url(self):
+        pass
         
     def get_ticket(self):
         if not self.current_ticket:

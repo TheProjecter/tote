@@ -17,10 +17,10 @@ HOUR = datetime.timedelta(hours=1)
 
 
 (
-    SINGLE
-    DAILY
-    WEEKLY
-    MONTHLY
+    SINGLE,
+    DAILY,
+    WEEKLY,
+    MONTHLY,
     YEARLY
 ) = range(5)
 
@@ -85,6 +85,9 @@ def shortTime(theTime):
     theTime = theTime.timetuple()
     longTime = time.asctime(theTime)
     splitTime = longTime.split(" ")
+    for each in splitTime:
+        if each == "":
+            splitTime.remove(each) #For some reason, extra spaces sometimes enter
     shortenedTime = splitTime[1] + " " + splitTime[2] + ", " + splitTime[3].split(":")[0] + ":" + splitTime[3].split(":")[1]
     return shortenedTime
 
@@ -185,7 +188,7 @@ def blipFromUid(uid, block=None):
             else:
                 pass
         return None
-    if block=None:
+    if block == None:
         for each in blocks:
             findBlip(uid, each)
     else:
@@ -312,8 +315,14 @@ class task:
             except TypeError:
                 self.startTime = datetime.datetime.now()
         print self.startTime
-        if dueTime == -1:
-            self.dueTime = self.startTime.replace(day=self.startTime.day+1) #One day from now
+        if dueTime == -1: #MARJOR ERROR HERE. We can not append to the last day in the month!!!!!!!!!!
+            try:
+                self.dueTime = self.startTime.replace(day=self.startTime.day+1) #One day from now
+            except ValueError:
+                try:
+                    self.dueTime = self.startTime.replace(day=1, month=self.startTime.month+1)
+                except ValueError: # Yay! we reached dec. 31
+                    self.dueTime = self.startTime.replace(day=1, month=1, year=self.startTime.year+1)
         else:
             
             ############## working on date here. Start of day? End of day? ###################
@@ -402,7 +411,7 @@ class blip:
             return otherblip
         self.startTime = startTime
         self.endTime = endTime
-        self.repeat=(repition_type, repition_details)
+        self.repeat=(int(repition_type), int(repition_details))
 
 
 
@@ -417,6 +426,7 @@ class block:
         if otherBlock != None:
             return otherBlock
         
+        self.name = name
         self.description = description
 
         self.single_blips = []
@@ -425,34 +435,42 @@ class block:
         self.monthly_blips = []
         self.yearly_blips = []
         self.all_blips = []
+        self.all_blip_types = (self.single_blips,
+                               self.daily_blips,
+                               self.weekly_blips,
+                               self.monthly_blips,
+                               self.yearly_blips)
         
-    def add_single_blip_time(self, day, startTime, endTime):
-        theblip = blip(startTime, endTime, repition_type=SINGLE, repition_detials=day)
+    def add_single_blip(self, day, startTime, endTime):
+        theblip = blip(startTime, endTime, repition_type=SINGLE, repition_details=day)
         self.single_blips.append(theblip)
         self.all_blips.append(theblip)
-    def add_daily_blip_time(self, startTime, endTime):
+    def add_daily_blip(self, startTime, endTime):
         theblip = blip(startTime, endTime, repition_type=DAILY)
         self.daily_blips.append(theblip)
         self.all_blips.append(theblip)
-    def add_weekly_blip_time(self, dayOfWeek, startTime, endTime):
+    def add_weekly_blip(self, dayOfWeek, startTime, endTime):
         theblip=blip(startTime, endTime, reptition_type=WEEKLY, repition_details=dayOfWeek)
         self.weekly_blips.append(theblip)
         self.all_blips.append(theblip)
-    def add_monthly_blip_time(self, dayOfMonth, starTime, endTime):
+    def add_monthly_blip(self, dayOfMonth, starTime, endTime):
         theblip = blip(startTime, endTime, repition_type=MONTHLY, repition_details=dayOfMonth)
         self.monthly_blips.append(theblip)
         self.all_blips.append(theblip)
-    def add_yearly_blip_time(self, dayOfYear, startTime, endTime):
+    def add_yearly_blip(self, dayOfYear, startTime, endTime):
         theblip = blip(startTime, endTime, repition_type=YEARLY, repition_details=dayOfYear)
         self.yearly_blips.append(theblip)
         self.all_blips.append(theblip)
 
         
-    def remove_blip_time(self, uid):
-        (blip, repition) = blipFromUid(uid, block)
-        self.all_blips[repition].remove(blip)
+    def remove_blip_from_uid(self, uid):
+        blip = blipFromUid(uid, block)
+        self.remove_blip(blip)
         
-        
+    def remove_blip(self, blip):
+        (repition, data) = blip.repeat
+        self.all_blips.remove(blip)
+        self.all_blip_types[repition].remove(blip)
     
 
 
@@ -478,7 +496,14 @@ class event:
             except TypeError:
                 startTime = dateTime.datetime.now()
         if endTime == -1:
-            endTime = startTime.replace(day=startTime.day+1) #One day from now
+            try:
+                endTime = startTime.replace(day=startTime.day+1) #One day from now
+            except ValueError:
+                try:
+                    endTime = startTime.replace(day=1, month=startTime.month+1)
+                except ValueError: # Yay! we reached dec. 31
+                    endTime = startTime.replace(day=1, month=1, year=startTime.year+1)
+        
         else:
             try:
                 self.endTime = endTime
