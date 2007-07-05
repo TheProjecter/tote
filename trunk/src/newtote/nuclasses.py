@@ -82,6 +82,8 @@ def dateFromTime(localTime):
 'Sat Apr 21 15:15:52 2007'
 
 def shortTime(theTime):
+    if theTime == None:
+        return None
     theTime = theTime.timetuple()
     longTime = time.asctime(theTime)
     splitTime = longTime.split(" ")
@@ -288,8 +290,18 @@ def taskCreator():
 	pass	
 
 
+def tomorrowDateTime(today):
+    try:
+        Tomorrow = today.replace(day=today.day+1) #One day from now
+    except ValueError:
+        try:
+            Tomorrow = today.replace(day=1, month=today.month+1)
+        except ValueError: # Yay! we reached dec. 31
+            Tomorrow = today.replace(day=1, month=1, year=today.year+1)
+    return Tomorrow
+
 class task:
-    def __init__(self, name, startTime=-1, dueTime=-1, description="", parentEvents=[], parentTask=-1, resources=[], relatedTasks=[], isProject=0, uid=-1, zohoID=None):
+    def __init__(self, name, startTime=-1, dueTime=None, description="", parentEvents=[], parentTask=-1, resources=[], relatedTasks=[], isProject=0, uid=-1, zohoID=None):
         self.__name__ = "task"
         if uid == -1:
             self.uid = uuid.uuid1()
@@ -315,21 +327,10 @@ class task:
             except TypeError:
                 self.startTime = datetime.datetime.now()
         print self.startTime
-        if dueTime == -1: #MARJOR ERROR HERE. We can not append to the last day in the month!!!!!!!!!!
-            try:
-                self.dueTime = self.startTime.replace(day=self.startTime.day+1) #One day from now
-            except ValueError:
-                try:
-                    self.dueTime = self.startTime.replace(day=1, month=self.startTime.month+1)
-                except ValueError: # Yay! we reached dec. 31
-                    self.dueTime = self.startTime.replace(day=1, month=1, year=self.startTime.year+1)
-        else:
-            
-            ############## working on date here. Start of day? End of day? ###################
-            try:
-                self.dueTime = dueTime
-            except TypeError:
-                self.dueTime = tstartTime.replace(day=startTime.day+1, hour=7)
+        try:
+            self.dueTime = dueTime
+        except TypeError:
+            self.dueTime = None
         self.relatedTasks = []
         self.resources = []
         self.description = description
@@ -457,8 +458,8 @@ class block:
         theblip = blip(startTime, endTime, repition_type=MONTHLY, repition_details=dayOfMonth)
         self.monthly_blips.append(theblip)
         self.all_blips.append(theblip)
-    def add_yearly_blip(self, dayOfYear, startTime, endTime):
-        theblip = blip(startTime, endTime, repition_type=YEARLY, repition_details=dayOfYear)
+    def add_yearly_blip(self, (dayOfMonth, monthOfYear), startTime, endTime):
+        theblip = blip(startTime, endTime, repition_type=YEARLY, repition_details=(dayOfMonth, monthOfYear))
         self.yearly_blips.append(theblip)
         self.all_blips.append(theblip)
 
@@ -471,6 +472,46 @@ class block:
         (repition, data) = blip.repeat
         self.all_blips.remove(blip)
         self.all_blip_types[repition].remove(blip)
+        
+    def list_blips_for_day(self, day): #Day will be in the format datetime.datetime
+        matching_blips = []
+        for ablip in self.all_blips: #We look at each blip, and pass it to the helper program to determine if it happens on the specified date
+            if blip_happens_on_date(ablip, day):
+                matching_blips.append(ablip)
+            else:
+                pass
+        return matching_blips
+            
+def blip_happens_on_date(blip, date):
+    day = date.day
+    month = date.month
+    year = date.year
+    if blip.repeat[0] == SINGLE:
+        if blip.repeat[1].day == date.day & blip.repeat[1].month == date.month & blip.repeat[1].year == date.year:
+            return True
+        else:
+            return False
+    elif blip.repeat[0] == DAILY:
+        return True #This has to be true because it happens every day.
+    elif blip.repeat[0] == WEEKLY:
+        if blip.repeat[1].weekday() == date.weekday():
+            return True
+        else:
+            return False
+    elif blip.repeat[0] == MONTHLY:
+        if blip.repeat[1] == date.day:
+            return True
+        else:
+            return False
+    elif blip.repeat[0] == YEARLY:
+        if blip.repeat[1][0] == date.day & blip.repeat[1][1] == date.month:
+            return True
+        else:
+            return False
+    else:
+        log_error("Blip isn't one of the known repitions. Its value is %s, not 0-4" % blip.repeat[0])
+        
+    
     
 
 
