@@ -347,7 +347,13 @@ class task:
             self.parentEvents.append(each)
         self.dateTime = self.startTime
 
-    
+    def get_data(self, thing):
+        try:
+            return self.data[thing]
+        except KeyError:
+            log_error("The Requested pice of Data (%s) was not found in the dictionary!" % thing)
+            return None
+
     def getdate(self):
         hdate = str(self.startTime).split()[0].split("-")
         return hdate[0] + "." + hdate[1] + "." + hdate[2]

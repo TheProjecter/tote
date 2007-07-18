@@ -310,7 +310,23 @@ class ToteMainWindow(gtk.Window):
 
         self.show_all()
 
+    def __build_column_data_pairs(self, item, itemData):
+        column_data_pairs = []
+        for number in range(len(itemData)):
+            column_data_pairs.append(number)
+            column_data_pairs.append(item.get_data[itemData[number]])
+        return column_data_pairs
     
+
+    def __create_model(self, columnData, itemList, itemData): #ItemData is a list of things for columns. columnData[0] links up with itemData[0]
+        lstore = gtk.ListStore(*columnData)
+
+        for item in itemList:
+            iteration = lstore.append()
+            treeitems_uids[iteration] = item.uid
+            column_data_pairs = self.__build_column_data_pairs(item, itemData)
+            lstore.set(iteration, *column_data_pairs)
+            
     def __create_model_both(self, taskList, eventList):
         lstore_both = gtk.ListStore(
             gobject.TYPE_BOOLEAN,
