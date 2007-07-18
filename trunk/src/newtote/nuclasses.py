@@ -5,6 +5,11 @@ events = []
 blocks = []
 tomorrows = ["none"]
 
+#Tempoary Stuff
+error_log_location = "./.Tote_error_log"
+info_log_location = "./.Tote_info_log"
+#End Temp Stuff
+
 import datetime
 from random import randint
 from socket import gethostname
@@ -43,10 +48,20 @@ utc = UTC()
 
 
 def log_error(error_text):
-    print "ERROR: ", error_text
+    final_text = "ERROR: " + error_text
+    print final_text
+    f = open(error_log_location, "a")
+    f.write(final_text + "\n")
+    f.close
+    
 
 def log_info(info_text):
-    print "LOG: ", info_text
+    final_text = "LOG: " + info_text
+    print final_text
+    f = open(info_log_location, "a")
+    f.write(final_text + "\n")
+    f.close
+    
 
 def convertToSeconds(m=0, h=0, d=0, w=0, y=0):
     return m*60 + h*3600 + d*3600*24 + w*7*24*3600 + y*365*24*3600
@@ -302,7 +317,9 @@ def tomorrowDateTime(today):
 
 class task:
     def __init__(self, name, startTime=-1, dueTime=None, description="", parentEvents=[], parentTask=-1, resources=[], relatedTasks=[], isProject=0, uid=-1, zohoID=None):
+        self.data = {}
         self.__name__ = "task"
+        self.set_data("name", "task")
         if uid == -1:
             self.uid = uuid.uuid1()
         else:
@@ -353,6 +370,10 @@ class task:
         except KeyError:
             log_error("The Requested pice of Data (%s) was not found in the dictionary!" % thing)
             return None
+        
+    def set_data(self, thing, newData):
+        self.data[thing] = newData
+        return True
 
     def getdate(self):
         hdate = str(self.startTime).split()[0].split("-")
